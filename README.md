@@ -1,2 +1,2 @@
-# linux-setup-scripts
-Set of custom commands and shortcuts for linux distros
+# How to use
+after cloning the repo, you need to switch the branch to the one that contains the setup wanted
