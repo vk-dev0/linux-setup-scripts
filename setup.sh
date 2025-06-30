@@ -6,13 +6,16 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-COMMANDS_DIR="./commands"
-SHORTCUTS_FILE="./shortcuts.sh"
+# Resolve the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+COMMANDS_DIR="$SCRIPT_DIR/commands"
+SHORTCUTS_FILE="$SCRIPT_DIR/shortcuts.sh"
 
 # Check and execute shortcuts.sh if it exists
 if [ -f "$SHORTCUTS_FILE" ]; then
   echo "Found shortcuts.sh. Executing..."
-  "$SHORTCUTS_FILE"
+  sudo bash "$SHORTCUTS_FILE"
 else
   echo "shortcuts.sh not found. Skipping execution."
 fi
