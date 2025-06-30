@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [[ "$1" == *.tar.gz && -f "$1" ]]; then
+    base_name="${1%.tar.gz}"
+    if [ -d "$base_name" ]; then
+        echo "Directory '$base_name' already exists."
+    else
+        echo "Extracting archive: $1"
+        mkdir "$base_name"
+        tar -xvzf "$1" -C "$base_name"
+    fi
+else
+    echo "Not a valid .tar.gz file."
+fi

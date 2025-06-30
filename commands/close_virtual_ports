@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ps aux | grep socat | awk '{print $2}' | xargs sudo kill -9
+
+sudo rm /dev/ttyACM*
+sudo rm /dev/ttyV*

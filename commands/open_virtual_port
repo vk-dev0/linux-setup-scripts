@@ -1,0 +1,11 @@
+#!/bin/bash
+
+sudo socat PTY,link=$1,raw,echo=0 PTY,link=$2,raw,echo=0 &
+
+sleep 0.1
+
+sudo chmod 666 $1
+
+sudo chmod 666 $2
+
+echo -e "Send info on: $2"

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+for iface in $(ip -o link show | awk -F': ' '{print $2}'); do sudo ip addr flush dev $iface; done

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -d "$1" ]; then
+    dir=$(basename "$1")
+    tar -cvzf "${dir}.tar.gz" -C "$(dirname "$1")" "$dir"
+else
+    echo "Not a directory."
+fi

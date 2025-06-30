@@ -1,0 +1,17 @@
+#!/bin/bash
+
+sudo socat PTY,link=/dev/ttyACM0,raw,echo=0 PTY,link=/dev/ttyV0,raw,echo=0 &
+sudo socat PTY,link=/dev/ttyACM1,raw,echo=0 PTY,link=/dev/ttyV1,raw,echo=0 &
+sudo socat PTY,link=/dev/ttyACM2,raw,echo=0 PTY,link=/dev/ttyV2,raw,echo=0 &
+
+sleep 0.1
+
+sudo chmod 666 /dev/ttyACM0
+sudo chmod 666 /dev/ttyACM1
+sudo chmod 666 /dev/ttyACM2
+
+sudo chmod 666 /dev/ttyV0
+sudo chmod 666 /dev/ttyV1
+sudo chmod 666 /dev/ttyV2
+
+echo -e "Send info on:\n/dev/ttyV0\n/dev/ttyV1\n/dev/ttyV2"

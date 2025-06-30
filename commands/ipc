@@ -1,0 +1,58 @@
+#!/bin/bash
+
+name="$(ip link show | awk -F: '$0 !~ "lo|virbr" {print $2; exit}' | xargs)"
+ip="192.168.6.80/24"
+gtw=""
+dns=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    ipc)
+      shift
+      ;;
+    n=*)
+      name="${1#*=}"
+      shift
+      ;;
+    i=*)
+      ip="${1#*=}"
+      if [[ ! "$ip" =~ / ]]; then
+        ip="$ip/24"
+      fi
+      shift
+      ;;
+    g=*)
+      gtw="${1#*=}"
+      shift
+      ;;
+    d=*)
+      dns="${1#*=}"
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      shift
+      ;;
+  esac
+done
+
+ip_address=${ip%/*}
+
+if [[ -z "$gtw" ]]; then
+	gtw="${ip_address%.*}.1"
+fi
+if [[ -z "$dns" ]]; then
+	dns=$gtw
+fi
+
+cat <<EOF > "/etc/systemd/network/10-$name.network"
+[Match]
+Name=$name
+
+[Network]
+Address=$ip
+Gateway=$gtw
+DNS=$dns
+DNS=8.8.4.4
+DHCP=no
+EOF

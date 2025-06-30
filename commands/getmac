@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Get the MAC address of wlan0
+MAC_ADDRESS=$(cat /sys/class/net/wlan0/address)
+
+# Check if the user provided a filename argument
+if [ -z "$1" ]; then
+  echo "$MAC_ADDRESS"
+  exit 1
+fi
+
+# Check if the filename ends with .txt, and if not, append it
+FILENAME="$1"
+if [[ ! "$FILENAME" =~ \.txt$ ]]; then
+  FILENAME="$FILENAME.txt"
+fi
+
+# Save the MAC address to the file
+echo "$MAC_ADDRESS" > "$FILENAME"
+
+echo "MAC address saved to $FILENAME"

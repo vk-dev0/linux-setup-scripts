@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ps aux | grep socat | grep $1 | awk '{print $2}' | xargs sudo kill -9
+
+sudo rm $1
+sudo rm $2
