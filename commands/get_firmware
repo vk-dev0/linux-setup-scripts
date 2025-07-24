@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -e  # Exit on error
+set -u  # Exit on unset vars
+
+REPO_URL="https://<user>:<token>@github.com/<profile>"
+# DEST_DIR="$HOME"
+DEST_DIR="."
+REPO_NAME=""
+BRANCH=""
+
+usage() {
+  echo "Usage: $0 -r <repo_name> [-b <branch_name>]"
+  exit 1
+}
+
+while getopts ":r:b:" opt; do
+  case $opt in
+    r)
+      REPO_NAME="$OPTARG"
+      ;;
+    b)
+      BRANCH="$OPTARG"
+      ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; usage ;;
+    :) echo "Option -$OPTARG requires an argument." >&2; usage ;;
+  esac
+done
+
+if [ -z "${REPO_NAME}" ]; then
+    echo "Need to inform repo name."
+    usage
+fi
+
+echo "Checking repository..."
+
+if [ -d "${DEST_DIR}/${REPO_NAME}" ]; then
+    current_branch=$(git -C "${DEST_DIR}/${REPO_NAME}" rev-parse --abbrev-ref HEAD)
+    echo "Repo already exists at \"${DEST_DIR}\". Pulling latest changes..."
+
+    if [ -z "${BRANCH}" ]; then
+        echo "No branch specified. Pulling latest changes on current branch: \"${current_branch}\""
+        git -C "${DEST_DIR}/${REPO_NAME}" pull
+    elif [ "${BRANCH}" != "${current_branch}" ]; then
+        echo "Switching from \"${current_branch}\" to \"${BRANCH}\"..."
+        git -C "${DEST_DIR}/${REPO_NAME}" fetch origin "${BRANCH}"
+        git -C "${DEST_DIR}/${REPO_NAME}" checkout "${BRANCH}"
+        git -C "${DEST_DIR}/${REPO_NAME}" pull origin "${BRANCH}"
+    else
+        echo "Already on branch \"${BRANCH}\". Pulling latest changes..."
+        git -C "${DEST_DIR}/${REPO_NAME}" pull origin "${BRANCH}"
+    fi
+    git -C "${DEST_DIR}/${REPO_NAME}" pull origin "${BRANCH}"
+else
+    echo "Cloning repo into ${DEST_DIR}/${REPO_NAME}..."
+    if [ -n "${BRANCH}" ]; then
+        git clone --branch "${BRANCH}" "${REPO_URL}/${REPO_NAME}" "${DEST_DIR}/${REPO_NAME}"
+    else
+        git clone "${REPO_URL}/${REPO_NAME}" "${DEST_DIR}/${REPO_NAME}"
+    fi
+fi
