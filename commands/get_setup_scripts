@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e  # Exit on error
+set -u  # Exit on unset vars
+
+REPO_URL="https://<user>:<token>@github.com/<profile>/linux-setup-scripts.git"
+DEST_DIR="$HOME/linux-setup-scripts"
+BRANCH="raspberry-setup"
+
+echo "Checking repository..."
+
+if [ -d "$DEST_DIR/.git" ]; then
+    echo "Repo already exists at $DEST_DIR. Pulling latest changes..."
+    git -C "$DEST_DIR" pull origin "$BRANCH"
+else
+    echo "Cloning repo into $DEST_DIR..."
+    git clone --branch "$BRANCH" "$REPO_URL" "$DEST_DIR"
+fi
+
+# Run the setup script if it exists
+SETUP_SCRIPT="$DEST_DIR/setup.sh"
+if [ -f "$SETUP_SCRIPT" ]; then
+    sudo chmod +x "$SETUP_SCRIPT"
+    echo "Running setup script..."
+    sudo bash "$SETUP_SCRIPT"
+else
+    echo "Setup script not found: $SETUP_SCRIPT"
+fi
+
+sudo rm -r "$DEST_DIR"
