@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# $1 = Hotspot Name
+# $2 = Password
+
+sudo nmcli dev wifi hotspot ifname wlan0 con-name $1 ssid $1 password $2

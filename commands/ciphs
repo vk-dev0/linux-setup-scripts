@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# $1 = Hotspot Name
+# $2 = Ip Address
+
+sudo nmcli connection modify $1 ipv4.addresses $2

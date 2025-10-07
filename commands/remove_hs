@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# $1 = Hotspot Name
+
+sudo nmcli connection delete $1

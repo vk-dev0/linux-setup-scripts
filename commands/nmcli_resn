@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# $1 = Hotspot Name
+
+sudo nmcli connection down $1 && sudo nmcli connection up $1

@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Usage: ./download-deps.sh <package-name>
+# Example: ./download-deps.sh util-linux
+
+set -e
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 <package-name>"
+  exit 1
+fi
+
+PACKAGE="$1"
+DOWNLOAD_DIR="${PACKAGE}-offline"
+
+mkdir -p "$DOWNLOAD_DIR"
+cd "$DOWNLOAD_DIR"
+
+echo "Resolving and downloading dependencies for: $PACKAGE"
+
+# Get all dependencies, remove reverse deps and duplicates
+apt-rdepends "$PACKAGE" \
+  | grep -v "^ " \
+  | awk '!a[$1]++' \
+  | while read -r pkg; do
+    # Check if the package is real (not virtual)
+    if apt-cache show "$pkg" > /dev/null 2>&1; then
+      echo "Downloading: $pkg"
+      apt download "$pkg"
+    else
+      # Attempt to resolve virtual package
+      real_pkg=$(apt-cache showpkg "$pkg" \
+        | awk '/Reverse Provides:/,/^$/' \
+        | grep -v "Reverse Provides:" \
+        | awk '{print $1}' \
+        | head -n 1)
+      if [ -n "$real_pkg" ]; then
+        echo "Resolved virtual package $pkg to $real_pkg"
+        apt download "$real_pkg"
+      else
+        echo "Skipping unknown or unresolvable package: $pkg"
+      fi
+    fi
+  done
+
+echo "All packages downloaded to: $(pwd)"
