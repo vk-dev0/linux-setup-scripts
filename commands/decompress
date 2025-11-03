@@ -1,14 +1,34 @@
 #!/bin/bash
 
+# Check if the first argument is a valid .tar.gz file
 if [[ "$1" == *.tar.gz && -f "$1" ]]; then
-    base_name="${1%.tar.gz}"
-    if [ -d "$base_name" ]; then
-        echo "Directory '$base_name' already exists."
+    base_name="${1%.tar.gz}"  # Strip the .tar.gz extension
+    # Check if the user specified a custom extraction directory (second argument)
+    if [ -n "$2" ]; then
+        if [ -d "$2" ]; then
+            echo "Directory '$2' already exists."
+        else
+            output_name="$2"
+        fi
     else
-        echo "Extracting archive: $1"
-        mkdir "$base_name"
-        tar -xvzf "$1" -C "$base_name"
+        # If the base_name directory already exists, warn the user
+        if [ -d "$base_name" ]; then
+            echo "Directory '$base_name' already exists."
+        else
+            output_name="$base_name"
+        fi
+
     fi
+    # Create the extraction directory (if it doesn't already exist)
+    # if [ ! -d "${output_name}" ]; then
+    #    mkdir -p "$output_name"
+    # fi
+    mkdir -p "${output_name}"
+
+    echo "Extracting archive '$1' into directory '$output_name'..."
+
+    # Extract the tarball into the target directory
+    tar -xvzf "$1" -C "$output_name" --strip-components=1
 else
     echo "Not a valid .tar.gz file."
 fi
