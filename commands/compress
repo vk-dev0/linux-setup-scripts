@@ -2,7 +2,16 @@
 
 if [ -d "$1" ]; then
     dir=$(basename "$1")
-    tar -cvzf "${dir}.tar.gz" -C "$(dirname "$1")" "$dir"
+    if [ -n "$2" ]; then
+        if [[ "$2" == *.tar.gz ]]; then
+            output_name="${2}"
+        else
+            output_name="${2}.tar.gz"
+        fi
+    else
+        output_name="${dir}.tar.gz"
+    fi
+    tar -cvzf "${output_name}" -C "$(dirname "$1")" "${dir}"
 else
     echo "Not a directory."
 fi
