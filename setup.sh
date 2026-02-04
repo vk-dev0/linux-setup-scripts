@@ -32,7 +32,7 @@ for file in "$COMMANDS_DIR"/*; do
     filename=$(basename "$file")
     cp "$file" /bin/"$filename"
     chmod +x /bin/"$filename"
-    dos2unix /bin/"$filename" # Ensure command is in bash formatting
+    dos2unix /bin/"$filename" > /dev/null # Ensure command is in bash formatting
     echo "Installed $filename to /bin and made it executable."
   fi
 done
