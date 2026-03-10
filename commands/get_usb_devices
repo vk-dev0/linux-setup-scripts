@@ -1,0 +1,10 @@
+#!/bin/bash
+for dev in /dev/ttyACM* /dev/ttyUSB*; do
+  [ -e "$dev" ] || continue
+  sys=$(udevadm info -q path -n $dev)
+  vid=$(udevadm info -q property -n $dev | grep ID_VENDOR_ID | cut -d= -f2)
+  pid=$(udevadm info -q property -n $dev | grep ID_MODEL_ID | cut -d= -f2)
+  model=$(udevadm info -q property -n $dev | grep ID_MODEL= | cut -d= -f2)
+  port=$(echo $sys | grep -o '[0-9]-[0-9.]*')
+  printf "%-20s %-9s %-10s %s\n" "$model" "$vid:$pid" "$port" "$dev"
+done

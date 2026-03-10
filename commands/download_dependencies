@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Usage: ./download-deps.sh <package-name>
-# Example: ./download-deps.sh util-linux
+# Usage: ./download-dependencies <package-name>
+# Example: ./download-dependencies util-linux
 
 set -e
 
