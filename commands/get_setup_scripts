@@ -3,7 +3,7 @@
 set -e  # Exit on error
 set -u  # Exit on unset vars
 
-REPO_URL="https://<user>:<token>@github.com/<profile>/linux-setup-scripts.git"
+REPO_URL="https://github.com/vk-dev0/linux-setup-scripts.git"
 DEST_DIR="$HOME/linux-setup-scripts"
 BRANCH="raspberry-setup"
 
