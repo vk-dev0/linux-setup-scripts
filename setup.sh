@@ -11,6 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 COMMANDS_DIR="$SCRIPT_DIR/commands"
 SHORTCUTS_FILE="$SCRIPT_DIR/shortcuts.sh"
+BASH_FUNCTIONS_FILE="$SCRIPT_DIR/.bash_functions"
 
 # Check and execute shortcuts.sh if it exists
 if [ -f "$SHORTCUTS_FILE" ]; then
@@ -36,5 +37,15 @@ for file in "$COMMANDS_DIR"/*; do
     echo "Installed $filename to /bin and made it executable."
   fi
 done
+
+# Add custom functions
+if [ -f "$BASH_FUNCTIONS_FILE" ]; then
+  echo "Found .bash_functions. Copying..."
+  cp "$BASH_FUNCTIONS_FILE" ~/;
+  # Check if the bash_functions line is added to the bashrc
+  grep -qxF '[ -f ~/.bash_functions ] && source ~/.bash_functions' ~/.bashrc || echo '[ -f ~/.bash_functions ] && source ~/.bash_functions' >> ~/.bashrc
+else
+  echo ".bash_functions not found. Skipping execution."
+fi
 
 echo "Setup completed."
