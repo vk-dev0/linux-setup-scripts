@@ -41,9 +41,14 @@ done
 # Add custom functions
 if [ -f "$BASH_FUNCTIONS_FILE" ]; then
   echo "Found .bash_functions. Copying..."
-  cp "$BASH_FUNCTIONS_FILE" ~/;
+  cp "$BASH_FUNCTIONS_FILE" /home/pi/.bash_functions;
   # Check if the bash_functions line is added to the bashrc
-  grep -qxF '[ -f ~/.bash_functions ] && source ~/.bash_functions' ~/.bashrc || echo '[ -f ~/.bash_functions ] && source ~/.bash_functions' >> ~/.bashrc
+  if grep -qxF '[ -f ~/.bash_functions ] && source ~/.bash_functions' /home/pi/.bashrc; then
+    echo "Line already exists in .bashrc"
+  else
+    echo "Adding line to .bashrc"
+    echo '[ -f ~/.bash_functions ] && source ~/.bash_functions' >> /home/pi/.bashrc
+  fi
 else
   echo ".bash_functions not found. Skipping execution."
 fi
