@@ -1,0 +1,1 @@
+sudo dpkg-reconfigure keyboard-configuration && sudo systemctl restart keyboard-setup || sudo setupcon

@@ -1,0 +1,41 @@
+#!/bin/bash
+set -e
+
+URL="${2:-http://localhost:3000}"
+
+PROFILE=$(mktemp -d /dev/shm/chromium.XXXXXX)
+
+KIOSK="--kiosk"
+
+cleanup() {
+    rm -rf "$PROFILE"
+}
+
+trap cleanup EXIT INT TERM
+
+if [ "$1" = "--dev" ]; then
+    KIOSK=""
+fi
+
+exec cage -- chromium \
+    --user-data-dir="$PROFILE" \
+    --incognito \
+    --kiosk \
+    --no-first-run \
+    --no-default-browser-check \
+    --disable-sync \
+    --disable-background-networking \
+    --disable-component-update \
+    --disable-default-apps \
+    --disable-extensions \
+    --disable-breakpad \
+    --disable-domain-reliability \
+    --disable-client-side-phishing-detection \
+    --disable-crash-reporter \
+    --disable-gpu \
+    --disable-dev-shm-usage \
+    --disable-renderer-backgrounding \
+    --disk-cache-size=1048576 \
+    --media-cache-size=1048576 \
+    $KIOSK \
+    "$URL"
