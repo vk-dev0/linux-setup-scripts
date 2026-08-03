@@ -45,7 +45,7 @@ if [[ -z "$dns" ]]; then
 	dns=$gtw
 fi
 
-cat <<EOF > "/etc/systemd/network/10-$name.network"
+sudo cat <<EOF > "/etc/systemd/network/10-$name.network"
 [Match]
 Name=$name
 

@@ -1,34 +1,96 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Check if the first argument is a valid .tar.gz file
-if [[ "$1" == *.tar.gz && -f "$1" ]]; then
-    base_name="${1%.tar.gz}"  # Strip the .tar.gz extension
-    # Check if the user specified a custom extraction directory (second argument)
-    if [ -n "$2" ]; then
-        if [ -d "$2" ]; then
-            echo "Directory '$2' already exists."
-        else
-            output_name="$2"
-        fi
-    else
-        # If the base_name directory already exists, warn the user
-        if [ -d "$base_name" ]; then
-            echo "Directory '$base_name' already exists."
-        else
-            output_name="$base_name"
-        fi
+set -euo pipefail
 
-    fi
-    # Create the extraction directory (if it doesn't already exist)
-    # if [ ! -d "${output_name}" ]; then
-    #    mkdir -p "$output_name"
-    # fi
-    mkdir -p "${output_name}"
+usage() {
+    echo "Usage: $0 archive.tar.zst|archive.tar.gz [destination]"
+    exit 1
+}
 
-    echo "Extracting archive '$1' into directory '$output_name'..."
+[[ $# -lt 1 ]] && usage
 
-    # Extract the tarball into the target directory
-    tar -xvzf "$1" -C "$output_name" --strip-components=1
-else
-    echo "Not a valid .tar.gz file."
+ARCHIVE="$1"
+DEST="${2:-}"
+
+if [[ ! -f "$ARCHIVE" ]]; then
+    echo "Error: '$ARCHIVE' does not exist."
+    exit 1
 fi
+
+case "$ARCHIVE" in
+    *.tar.zst|*.tzst)
+        FORMAT="zst"
+        ;;
+    *.tar.gz|*.tgz)
+        FORMAT="gz"
+        ;;
+    *)
+        echo "Error: unsupported archive format."
+        exit 1
+        ;;
+esac
+
+
+if [[ -z "$DEST" ]]; then
+
+    NAME="$(basename "$ARCHIVE")"
+
+    case "$NAME" in
+        *.tar.zst)
+            DEST="${NAME%.tar.zst}"
+            ;;
+        *.tzst)
+            DEST="${NAME%.tzst}"
+            ;;
+        *.tar.gz)
+            DEST="${NAME%.tar.gz}"
+            ;;
+        *.tgz)
+            DEST="${NAME%.tgz}"
+            ;;
+    esac
+
+fi
+
+
+if [[ -e "$DEST" ]]; then
+    echo "Error: destination '$DEST' already exists."
+    exit 1
+fi
+
+mkdir -p "$DEST"
+
+echo "Extracting:"
+echo "  Archive: $ARCHIVE"
+echo "  Target:  $DEST"
+
+
+if [[ "$FORMAT" == "zst" ]]; then
+
+    if command -v pv >/dev/null 2>&1; then
+        zstd -dc "$ARCHIVE" \
+            | pv \
+            | tar -xf - -C "$DEST" --strip-components=1
+    else
+        tar --zstd \
+            -xvf "$ARCHIVE" \
+            -C "$DEST" \
+            --strip-components=1
+    fi
+
+else
+
+    if command -v pv >/dev/null 2>&1; then
+        gzip -dc "$ARCHIVE" \
+            | pv \
+            | tar -xf - -C "$DEST" --strip-components=1
+    else
+        tar -xzvf "$ARCHIVE" \
+            -C "$DEST" \
+            --strip-components=1
+    fi
+
+fi
+
+
+echo "Done."

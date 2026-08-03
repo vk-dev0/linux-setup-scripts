@@ -44,7 +44,7 @@ if [[ "$service_name" != *.service ]]; then
 fi
 
 # Create the systemd service file
-cat <<EOF > "/etc/systemd/system/${service_name}"
+sudo cat <<EOF > "/etc/systemd/system/${service_name}"
 [Unit]
 Description=$description
 After=network.target

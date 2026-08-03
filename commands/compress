@@ -1,17 +1,85 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ -d "$1" ]; then
-    dir=$(basename "$1")
-    if [ -n "$2" ]; then
-        if [[ "$2" == *.tar.gz ]]; then
-            output_name="${2}"
-        else
-            output_name="${2}.tar.gz"
-        fi
-    else
-        output_name="${dir}.tar.gz"
-    fi
-    tar -cvzf "${output_name}" -C "$(dirname "$1")" "${dir}"
-else
-    echo "Not a directory."
+set -euo pipefail
+
+usage() {
+    echo "Usage: $0 <directory> [output.tar.zst|output.tar.gz] [compression_level] [threads]"
+    echo
+    echo "Examples:"
+    echo "  $0 myfolder"
+    echo "  $0 myfolder backup.tar.zst"
+    echo "  $0 myfolder backup.tar.zst 10 2"
+    echo
+    echo "threads:"
+    echo "  0 = automatic (all available cores)"
+    echo "  1 = single-threaded"
+    exit 1
+}
+
+[[ $# -lt 1 ]] && usage
+
+SOURCE="$1"
+OUTPUT="${2:-}"
+LEVEL="${3:-6}"
+THREADS="${4:-2}"
+# THREADS="${4:-$(nproc)}"
+
+if [[ ! -d "$SOURCE" ]]; then
+    echo "Error: '$SOURCE' is not a directory."
+    exit 1
 fi
+
+DIR_NAME="$(basename "$SOURCE")"
+PARENT_DIR="$(dirname "$SOURCE")"
+
+if [[ -z "$OUTPUT" ]]; then
+    OUTPUT="${DIR_NAME}.tar.zst"
+fi
+
+case "$OUTPUT" in
+    *.tar.zst|*.tzst|*.tar.gz|*.tgz)
+        ;;
+    *)
+        OUTPUT="${OUTPUT}.tar.zst"
+        ;;
+esac
+
+if [[ -e "$OUTPUT" ]]; then
+    echo "Error: '$OUTPUT' already exists."
+    exit 1
+fi
+
+echo "Compressing:"
+echo "  Source: $SOURCE"
+echo "  Output: $OUTPUT"
+
+if [[ "$OUTPUT" == *.tar.gz || "$OUTPUT" == *.tgz ]]; then
+
+    if command -v pv >/dev/null 2>&1; then
+        tar -cf - -C "$PARENT_DIR" "$DIR_NAME" \
+            | pv \
+            | gzip -"$LEVEL" > "$OUTPUT"
+    else
+        tar -cz"$LEVEL" \
+            -vf "$OUTPUT" \
+            -C "$PARENT_DIR" \
+            "$DIR_NAME"
+    fi
+
+else
+
+    if command -v pv >/dev/null 2>&1; then
+        tar -cf - -C "$PARENT_DIR" "$DIR_NAME" \
+            | pv \
+            | zstd -"$LEVEL" -T"$THREADS" -o "$OUTPUT"
+    else
+        tar --zstd \
+            -"$LEVEL" \
+            -cvf "$OUTPUT" \
+            -C "$PARENT_DIR" \
+            "$DIR_NAME"
+    fi
+
+fi
+
+echo "Done."
