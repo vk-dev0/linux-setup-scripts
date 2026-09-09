@@ -4,27 +4,20 @@ set -euo pipefail
 URL="${1:-http://localhost:3000}"
 shift || true
 
-CHROMIUM_ARGS=()
-ADD_KIOSK_MODE=false
+DEV=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dev)
-            ADD_KIOSK_MODE=true
+            DEV=true
             ;;
-
         *)
             echo "Unknown option: $1" >&2
             exit 1
             ;;
     esac
-
     shift
 done
-
-if ! $ADD_KIOSK_MODE; then
-    CHROMIUM_ARGS+=(--kiosk)
-fi
 
 PROFILE=$(mktemp -d /dev/shm/chromium.XXXXXX)
 
@@ -34,24 +27,32 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
+CHROMIUM_ARGS=(
+    --user-data-dir="$PROFILE"
+
+    --no-first-run
+    --no-default-browser-check
+
+    --disable-sync
+    --disable-background-networking
+    --disable-component-update
+    --disable-default-apps
+    --disable-extensions
+    --disable-breakpad
+    --disable-crash-reporter
+
+    # Keep Chromium from trying to use unnecessary background features.
+    --disable-features=Translate,MediaRouter,OptimizationHints
+
+    # Small temporary caches.
+    --disk-cache-size=1048576
+    --media-cache-size=1048576
+)
+
+if ! $DEV; then
+    CHROMIUM_ARGS+=(--kiosk)
+fi
+
 exec cage -- chromium \
-    --user-data-dir="$PROFILE" \
-    --incognito \
-    --no-first-run \
-    --no-default-browser-check \
-    --disable-sync \
-    --disable-background-networking \
-    --disable-component-update \
-    --disable-default-apps \
-    --disable-extensions \
-    --disable-breakpad \
-    --disable-domain-reliability \
-    --disable-client-side-phishing-detection \
-    --disable-crash-reporter \
-    --disable-gpu \
-    --disable-dev-shm-usage \
-    --disable-renderer-backgrounding \
-    --disk-cache-size=1048576 \
-    --media-cache-size=1048576 \
     "${CHROMIUM_ARGS[@]}" \
     "$URL"
