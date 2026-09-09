@@ -1,0 +1,54 @@
+#!/bin/bash
+set -euo pipefail
+
+URL="${1:-http://localhost:3000}"
+shift || true
+
+DEV=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dev)
+            DEV=true
+            ;;
+
+        *)
+            echo "Unknown option: $1" >&2
+            exit 1
+            ;;
+    esac
+
+    shift
+done
+
+# Keep all Cog/WebKit writable data in RAM.
+# Nothing under this directory survives the session.
+RUNTIME_DIR=$(mktemp -d /dev/shm/cog.XXXXXX)
+
+cleanup() {
+    rm -rf -- "$RUNTIME_DIR"
+}
+
+trap cleanup EXIT INT TERM
+
+# Redirect GLib/WebKit data and cache directories to RAM.
+export XDG_DATA_HOME="$RUNTIME_DIR/data"
+export XDG_CACHE_HOME="$RUNTIME_DIR/cache"
+
+mkdir -p "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
+
+# Cog/WPE configuration.
+COG_ARGS=(
+    --doc-viewer
+    --set-permissions=none
+)
+
+if $DEV; then
+    exec cog \
+        "${COG_ARGS[@]}" \
+        "$URL"
+else
+    exec cage -- cog \
+        "${COG_ARGS[@]}" \
+        "$URL"
+fi
