@@ -1,26 +1,42 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-URL="${2:-http://localhost:3000}"
+URL="${1:-http://localhost:3000}"
+shift || true
+
+CHROMIUM_ARGS=()
+ADD_KIOSK_MODE=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dev)
+            ADD_KIOSK_MODE=true
+            ;;
+
+        *)
+            echo "Unknown option: $1" >&2
+            exit 1
+            ;;
+    esac
+
+    shift
+done
+
+if ! $ADD_KIOSK_MODE; then
+    CHROMIUM_ARGS+=(--kiosk)
+fi
 
 PROFILE=$(mktemp -d /dev/shm/chromium.XXXXXX)
 
-KIOSK="--kiosk"
-
 cleanup() {
-    rm -rf "$PROFILE"
+    rm -rf -- "$PROFILE"
 }
 
 trap cleanup EXIT INT TERM
 
-if [ "$1" = "--dev" ]; then
-    KIOSK=""
-fi
-
 exec cage -- chromium \
     --user-data-dir="$PROFILE" \
     --incognito \
-    --kiosk \
     --no-first-run \
     --no-default-browser-check \
     --disable-sync \
@@ -37,5 +53,5 @@ exec cage -- chromium \
     --disable-renderer-backgrounding \
     --disk-cache-size=1048576 \
     --media-cache-size=1048576 \
-    $KIOSK \
+    "${CHROMIUM_ARGS[@]}" \
     "$URL"
